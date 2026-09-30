@@ -1,0 +1,98 @@
+@import "tailwindcss";
+
+/*
+ * EcomSim design tokens — sampled from live amazon.in screenshots (1440px),
+ * see plans/03-design-system-specs.md and docs/fidelity/.
+ */
+:root {
+  --nav-primary: #131921;
+  --nav-secondary: #232f3e;
+  --footer-bottom: #131a22;
+  --footer-top-strip: #37475a;
+  --cta-yellow: #ffd814;
+  --cta-yellow-border: #fcd200;
+  --cta-orange: #ffa41c;
+  --cta-orange-border: #ff8f00;
+  --search-orange: #febd69;
+  --dropdown-gray: #e6e6e6;
+  --link: #007185;
+  --link-hover: #c7511f;
+  --text-primary: #0f1111;
+  --text-secondary: #565959;
+  --deal-red: #cc0c39;
+  --success-green: #007600;
+  --star-amber: #de7921;
+  --border: #d5d9d9;
+  --page-bg: #e3e6e6;
+  --focus-ring: #007185;
+  --bestseller-orange: #cc6600;
+  --choice-dark: #232f3e;
+}
+
+@theme inline {
+  --color-nav-primary: var(--nav-primary);
+  --color-nav-secondary: var(--nav-secondary);
+  --color-footer-bottom: var(--footer-bottom);
+  --color-footer-top-strip: var(--footer-top-strip);
+  --color-cta-yellow: var(--cta-yellow);
+  --color-cta-orange: var(--cta-orange);
+  --color-search-orange: var(--search-orange);
+  --color-link: var(--link);
+  --color-link-hover: var(--link-hover);
+  --color-text-primary: var(--text-primary);
+  --color-text-secondary: var(--text-secondary);
+  --color-deal-red: var(--deal-red);
+  --color-success-green: var(--success-green);
+  --color-star-amber: var(--star-amber);
+  --color-border-subtle: var(--border);
+  --color-page-bg: var(--page-bg);
+  --font-sans: "Amazon Ember", Arial, Helvetica, sans-serif;
+}
+
+html {
+  font-size: 14px;
+}
+
+body {
+  background: var(--page-bg);
+  color: var(--text-primary);
+  font-family: var(--font-sans);
+  -webkit-font-smoothing: antialiased;
+}
+
+a {
+  color: inherit;
+  text-decoration: none;
+}
+a:hover {
+  text-decoration: underline;
+}
+
+.link {
+  color: var(--link);
+}
+.link:hover {
+  color: var(--link-hover);
+  text-decoration: underline;
+}
+
+/* Amazon-style focus ring */
+:focus-visible {
+  outline: 2px solid var(--focus-ring);
+  outline-offset: 1px;
+  border-radius: 2px;
+}
+
+/* Line clamp helpers */
+.clamp-2 {
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+.clamp-3 {
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}

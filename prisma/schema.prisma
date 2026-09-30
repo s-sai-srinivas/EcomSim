@@ -1,0 +1,219 @@
+// EcomSim — baseline schema (Phase 00)
+// SQLite in dev; swap provider to postgresql for prod (types are enum-free for portability).
+
+generator client {
+  provider = "prisma-client"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "sqlite"
+}
+
+model User {
+  id           String   @id @default(cuid())
+  name         String?
+  email        String?  @unique
+  phone        String?  @unique
+  passwordHash String?
+  createdAt    DateTime @default(now())
+
+  addresses      Address[]
+  orders         Order[]
+  reviews        Review[]
+  wishlists      Wishlist[]
+  paymentMethods PaymentMethod[]
+  recentlyViewed RecentlyViewed[]
+  cartItems      CartItem[]
+}
+
+model Address {
+  id          String   @id @default(cuid())
+  userId      String
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  fullName    String
+  phone       String
+  pincode     String
+  city        String
+  state       String
+  line1       String
+  line2       String?
+  landmark    String?
+  type        String   @default("HOME") // HOME | WORK
+  isDefault   Boolean  @default(false)
+  createdAt   DateTime @default(now())
+
+  @@index([userId])
+}
+
+model Category {
+  id        String @id @default(cuid())
+  slug      String @unique
+  name      String
+  parentSlug String?
+  imageUrl  String?
+  sortOrder Int    @default(0)
+
+  @@index([parentSlug])
+}
+
+model Product {
+  id              String   @id @default(cuid())
+  asin            String?  @unique
+  title           String
+  brand           String?
+  categorySlug    String
+  categoryPath    String // "electronics>headphones"
+  bullets         String? // JSON string[]
+  description     String?
+  specs           String? // JSON Record<string,string>
+  listPrice       Int // minor units (paise)
+  salePrice       Int // minor units (paise)
+  currency        String   @default("INR")
+  ratingAvg       Float    @default(0)
+  ratingCount     Int      @default(0)
+  images          String? // JSON string[] of local image paths
+  isBestSeller    Boolean  @default(false)
+  bestSellerRank  Int?
+  stockSim        Int      @default(100)
+  deliveryDaysSim Int      @default(3)
+  badges          String? // JSON string[]
+  createdAt       DateTime @default(now())
+
+  cartItems      CartItem[]
+  orderItems     OrderItem[]
+  reviews        Review[]
+  wishlistItems  WishlistItem[]
+  recentlyViewed RecentlyViewed[]
+
+  @@index([categorySlug])
+  @@index([salePrice])
+  @@index([ratingAvg])
+  @@index([isBestSeller, categorySlug])
+}
+
+model Review {
+  id           String   @id @default(cuid())
+  productId    String
+  product      Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
+  userId       String?
+  user         User?    @relation(fields: [userId], references: [id], onDelete: SetNull)
+  authorName   String
+  rating       Int
+  title        String?
+  body         String
+  verifiedSim  Boolean  @default(true)
+  helpfulVotes Int      @default(0)
+  createdAt    DateTime @default(now())
+
+  @@index([productId])
+}
+
+model CartItem {
+  id             String   @id @default(cuid())
+  userId         String?
+  user           User?    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  anonSessionId  String?
+  productId      String
+  product        Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
+  qty            Int      @default(1)
+  savedForLater  Boolean  @default(false)
+  updatedAt      DateTime @updatedAt
+
+  @@unique([userId, productId])
+  @@unique([anonSessionId, productId])
+}
+
+model Wishlist {
+  id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  name      String   @default("Wish list")
+  isDefault Boolean  @default(true)
+  items     WishlistItem[]
+}
+
+model WishlistItem {
+  id          String   @id @default(cuid())
+  wishlistId  String
+  wishlist    Wishlist @relation(fields: [wishlistId], references: [id], onDelete: Cascade)
+  productId   String
+  product     Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
+  priceAtAdd  Int
+  addedAt     DateTime @default(now())
+
+  @@unique([wishlistId, productId])
+}
+
+model Order {
+  id              String   @id // Amazon-style number e.g. 171-XXXXXXX-XXXXXXX
+  userId          String
+  user            User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  status          String   @default("PENDING_PAYMENT") // PENDING_PAYMENT|CONFIRMED|PACKED|SHIPPED|OUT_FOR_DELIVERY|DELIVERED|CANCELLED|RETURN_REQUESTED|RETURNED
+  addressSnapshot String // JSON — frozen copy at purchase time
+  itemsTotal      Int
+  deliveryFee     Int      @default(0)
+  discount        Int      @default(0)
+  grandTotal      Int
+  speedTier       String   @default("STANDARD") // STANDARD|FASTER|SAME_DAY
+  placedAt        DateTime @default(now())
+  estDeliveryAt   DateTime?
+  deliveredAt     DateTime?
+
+  items    OrderItem[]
+  payments Payment[]
+
+  @@index([userId, placedAt])
+  @@index([status])
+}
+
+model OrderItem {
+  id              String  @id @default(cuid())
+  orderId         String
+  order           Order   @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  productId       String
+  product         Product @relation(fields: [productId], references: [id], onDelete: Cascade)
+  titleSnapshot   String
+  imageSnapshot   String?
+  priceAtPurchase Int // minor units
+  qty             Int
+  itemStatus      String  @default("ACTIVE") // ACTIVE|CANCELLED|RETURNED
+
+  @@index([orderId])
+}
+
+model Payment {
+  id            String   @id @default(cuid())
+  orderId       String
+  order         Order    @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  method        String // UPI|CARD|NETBANKING|WALLET|COD
+  maskedDetails String? // JSON — masked instrument only (last4, upi id domain, bank)
+  state         String   @default("INITIATED") // INITIATED|AUTHORIZED|CAPTURED|FAILED|REFUNDED
+  txnId         String?  @unique
+  amount        Int
+  createdAt     DateTime @default(now())
+
+  @@index([orderId])
+}
+
+model PaymentMethod {
+  id            String   @id @default(cuid())
+  userId        String
+  user          User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  kind          String // CARD|UPI
+  label         String // "HDFC Debit ••4242"
+  maskedDetails String // JSON
+  createdAt     DateTime @default(now())
+}
+
+model RecentlyViewed {
+  id            String   @id @default(cuid())
+  userId        String?
+  user          User?    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  anonSessionId String?
+  productId     String
+  product       Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
+  viewedAt      DateTime @default(now())
+
+  @@unique([anonSessionId, productId])
+}
