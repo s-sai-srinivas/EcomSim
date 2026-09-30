@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { Suspense } from "react";
 import { SigninForm } from "./SigninForm";
 
 export const metadata = { title: "Sign in | EcoMart" };
@@ -13,7 +14,9 @@ export default function SigninPage() {
 
         <div className="w-full rounded-[8px] border border-[#DDD] p-5">
           <h1 className="text-[28px] font-normal text-[#0F1111]">Sign in</h1>
-          <SigninForm />
+          <Suspense>
+            <SigninForm />
+          </Suspense>
         </div>
 
         <div className="mt-6 w-full border-t border-[#e7e7e7] pt-6">

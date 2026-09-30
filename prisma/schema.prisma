@@ -1,5 +1,5 @@
 // EcomSim — baseline schema (Phase 00)
-// SQLite in dev; swap provider to postgresql for prod (types are enum-free for portability).
+// Postgres via Prisma Postgres in prod (Vercel can't persist SQLite).
 
 generator client {
   provider = "prisma-client"
@@ -7,7 +7,7 @@ generator client {
 }
 
 datasource db {
-  provider = "sqlite"
+  provider = "postgresql"
 }
 
 model User {
