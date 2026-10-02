@@ -1,10 +1,12 @@
 "use client";
 
 import { useState } from "react";
+import { useRouter } from "next/navigation";
 import { useCartStore } from "@/stores/cart.store";
 
 export function AddToCartButton({ productId }: { productId: string }) {
   const add = useCartStore((s) => s.add);
+  const router = useRouter();
   const [added, setAdded] = useState(false);
 
   return (
@@ -22,7 +24,10 @@ export function AddToCartButton({ productId }: { productId: string }) {
       </button>
       <button
         type="button"
-        onClick={() => add(productId, 1)}
+        onClick={() => {
+          add(productId, 1);
+          router.push("/checkout");
+        }}
         className="h-[33px] w-full rounded-full bg-cta-orange text-[13px] font-medium text-[#0F1111] hover:bg-[#FA8900] active:translate-y-px"
       >
         Buy Now
